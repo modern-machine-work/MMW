@@ -1,0 +1,49 @@
+<div class="page-header">
+  <div>
+    <h1>Masters</h1>
+    <p>Manage clients, parts, vendors, machines and employees in one place.</p>
+  </div>
+</div>
+
+<div class="tabbar" data-tabbar>
+  <button class="tab-button active" type="button" data-tab-target="clients">Clients</button>
+  <button class="tab-button" type="button" data-tab-target="parts">Parts</button>
+  <button class="tab-button" type="button" data-tab-target="vendors">Vendors</button>
+  <button class="tab-button" type="button" data-tab-target="machines">Machines</button>
+  <button class="tab-button" type="button" data-tab-target="employees">Employees</button>
+</div>
+
+<section class="group-section" data-tab-panel="clients" data-crud-page="clients">
+  <div class="page-header"><div><h1>Clients</h1><p>Customer master data.</p></div><button class="btn primary" type="button" data-add-record>Add Client</button></div>
+  <div class="toolbar"><input class="search-input" data-search placeholder="Search clients"></div>
+  <div class="table-wrap"><table><thead data-table-head></thead><tbody data-table-body></tbody></table></div>
+  <div data-modal-root></div>
+</section>
+
+<section class="group-section hidden" data-tab-panel="parts" data-crud-page="parts">
+  <div class="page-header"><div><h1>Parts</h1><p>Part and drawing master data.</p></div><button class="btn primary" type="button" data-add-record>Add Part</button></div>
+  <div class="toolbar"><input class="search-input" data-search placeholder="Search parts"></div>
+  <div class="table-wrap"><table><thead data-table-head></thead><tbody data-table-body></tbody></table></div>
+  <div data-modal-root></div>
+</section>
+
+<section class="group-section hidden" data-tab-panel="vendors" data-crud-page="vendors">
+  <div class="page-header"><div><h1>Vendors</h1><p>Supplier and service provider records.</p></div><button class="btn primary" type="button" data-add-record>Add Vendor</button></div>
+  <div class="toolbar"><input class="search-input" data-search placeholder="Search vendors"></div>
+  <div class="table-wrap"><table><thead data-table-head></thead><tbody data-table-body></tbody></table></div>
+  <div data-modal-root></div>
+</section>
+
+<section class="group-section hidden" data-tab-panel="machines" data-crud-page="machines">
+  <div class="page-header"><div><h1>Machines</h1><p>Shopfloor machine master.</p></div><button class="btn primary" type="button" data-add-record>Add Machine</button></div>
+  <div class="toolbar"><input class="search-input" data-search placeholder="Search machines"></div>
+  <div class="table-wrap"><table><thead data-table-head></thead><tbody data-table-body></tbody></table></div>
+  <div data-modal-root></div>
+</section>
+
+<section class="group-section hidden" data-tab-panel="employees" data-crud-page="employees">
+  <div class="page-header"><div><h1>Employees</h1><p>Employee salary and department records.</p></div><button class="btn primary" type="button" data-add-record>Add Employee</button></div>
+  <div class="toolbar"><input class="search-input" data-search placeholder="Search employees"></div>
+  <div class="table-wrap"><table><thead data-table-head></thead><tbody data-table-body></tbody></table></div>
+  <div data-modal-root></div>
+</section>

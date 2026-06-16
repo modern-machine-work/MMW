@@ -1,0 +1,28 @@
+<section>
+  <div class="page-header">
+    <div>
+      <h1>Notifications</h1>
+      <p>Automatic reminders from invoices, expenses, advances, salary and open orders.</p>
+    </div>
+  </div>
+  <div class="toolbar">
+    <input class="search-input" id="notificationsSearch" placeholder="Search notifications">
+    <input class="range-input" type="month" id="notificationsMonth" aria-label="Month filter">
+    <button class="btn small" type="button" id="notificationsClear">Clear</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Reference</th>
+          <th>Due Date</th>
+          <th>Amount</th>
+          <th>Note</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="notificationsBody"></tbody>
+    </table>
+  </div>
+</section>
