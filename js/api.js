@@ -1,5 +1,6 @@
 const API_CONFIG_KEY = 'mmwApiUrl';
 const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbx_xHAyop1J6QbSez84NWqZ5Ld1xEmCyZW0HJqFLijVGzjk6URMtbs_OPujQ4QXXPk/exec';
+let sessionExpiredHandled = false;
 
 function getApiUrl() {
   return localStorage.getItem(API_CONFIG_KEY) || DEFAULT_API_URL;
@@ -11,6 +12,20 @@ function setApiUrl(url) {
 
 function getAuthToken() {
   return localStorage.getItem('mmwToken') || '';
+}
+
+function clearAuthState() {
+  localStorage.removeItem('mmwAuth');
+  localStorage.removeItem('mmwToken');
+  localStorage.removeItem('mmwUser');
+}
+
+function handleSessionExpired() {
+  clearAuthState();
+  if (!sessionExpiredHandled) {
+    sessionExpiredHandled = true;
+    window.location.hash = 'login';
+  }
 }
 
 function showLoader() {
@@ -25,13 +40,14 @@ async function parseApiResponse(response) {
   const text = await response.text();
   const payload = text ? JSON.parse(text) : {};
   if (!response.ok || payload.success === false) {
-    if (payload.message && payload.message.toLowerCase().includes('login required')) {
-      localStorage.removeItem('mmwAuth');
-      localStorage.removeItem('mmwToken');
-      localStorage.removeItem('mmwUser');
-      window.location.hash = 'login';
+    const message = payload.message || `Request failed with status ${response.status}`;
+    if (message.toLowerCase().includes('login required') || message.toLowerCase().includes('session expired')) {
+      handleSessionExpired();
+      const authError = new Error(message);
+      authError.isAuthError = true;
+      throw authError;
     }
-    throw new Error(payload.message || `Request failed with status ${response.status}`);
+    throw new Error(message);
   }
   return payload.data ?? payload;
 }
