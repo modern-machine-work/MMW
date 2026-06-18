@@ -165,7 +165,7 @@ function exportRowsToExcel(config, rows) {
         </style>
       </head>
       <body>
-        <h2>Modern Machine Works - ${escapeHtml(config.sheet)}</h2>
+        <h2>Modern Machine Work - ${escapeHtml(config.sheet)}</h2>
         <table>
           <thead><tr>${headerCells}</tr></thead>
           <tbody>${bodyRows}</tbody>
@@ -209,7 +209,7 @@ function printRowsAsPdf(config, rows) {
       </style>
     </head>
     <body>
-      <h1>Modern Machine Works - ${escapeHtml(config.sheet)}</h1>
+      <h1>Modern Machine Work - ${escapeHtml(config.sheet)}</h1>
       <p>Generated on ${escapeHtml(formatDateStamp())}</p>
       <table>
         <thead><tr>${headerCells}</tr></thead>
