@@ -41,6 +41,11 @@ async function initDashboardPage() {
   const inPeriod = (dateValue) => !selectedPeriod() || (periodType.value === 'year' ? yearKey(dateValue) : monthKey(dateValue)) === selectedPeriod();
   const inFy = (dateValue, row = {}) => !financialYearFilter.value || String(row.FinancialYear || fyKey(dateValue)) === financialYearFilter.value;
   const scoped = (rows, dateField) => rows.filter((row) => inPeriod(row[dateField]) && inFy(row[dateField], row));
+  const includedInvoices = (rows) => rows.filter((row) => String(row.IncludeInReports || 'Yes') !== 'No');
+  const includedPayments = (payments, invoices) => {
+    const excludedInvoiceIds = new Set(invoices.filter((invoice) => String(invoice.IncludeInReports || 'Yes') === 'No').map((invoice) => String(invoice.InvoiceID)));
+    return payments.filter((payment) => !payment.InvoiceID || !excludedInvoiceIds.has(String(payment.InvoiceID)));
+  };
 
   function showTip(event, text) {
     tooltip.textContent = text;
@@ -62,17 +67,19 @@ async function initDashboardPage() {
   }
 
   function renderStats(data) {
-    const invoices = scoped(data.invoices, 'InvoiceDate');
+    const invoices = includedInvoices(scoped(data.invoices, 'InvoiceDate'));
     const expenses = scoped(data.expenses, 'Date');
     const production = scoped(data.production, 'Date');
-    const payments = scoped(data.customerPayments, 'PaymentDate');
+    const payments = includedPayments(scoped(data.customerPayments, 'PaymentDate'), data.invoices);
     const sales = invoices.reduce((sum, row) => sum + amount(row.Amount), 0);
     const collections = payments.reduce((sum, row) => sum + amount(row.AmountReceived), 0);
     const expenseTotal = expenses.reduce((sum, row) => sum + amount(row.Amount), 0);
     const outstanding = invoices.filter((row) => !String(row.PaymentStatus || '').toLowerCase().startsWith('paid')).reduce((sum, row) => sum + amount(row.Amount), 0);
     const productionQty = production.reduce((sum, row) => sum + amount(row.OKQty), 0);
     const openOrders = data.orders.filter((row) => !['closed', 'dispatched'].includes(String(row.Status || '').toLowerCase())).length;
-    const employees = data.employees.filter((row) => String(row.Status || '').toLowerCase() !== 'inactive').length;
+    const vendorOutstanding = data.vendorPayments
+      .filter((row) => String(row.PaymentStatus || '').toLowerCase() === 'unpaid')
+      .reduce((sum, row) => sum + amount(row.AmountPaid), 0);
     const cards = [
       ['Sales', money(sales)],
       ['Collections', money(collections)],
@@ -80,7 +87,7 @@ async function initDashboardPage() {
       ['Profit / Loss', money(sales - expenseTotal)],
       ['Open Orders', openOrders],
       ['Production Quantity', productionQty.toLocaleString('en-IN')],
-      ['Employees', employees],
+      ['Vendor Outstanding', money(vendorOutstanding)],
       ['Expenses', money(expenseTotal)],
     ];
     statsRoot.innerHTML = cards.map(([label, value]) => `<article class="stat-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join('');
@@ -141,13 +148,23 @@ async function initDashboardPage() {
   function renderNotifications(data) {
     const today = formatDateStamp();
     const rows = [];
-    data.invoices.forEach((invoice) => {
+    includedInvoices(data.invoices).forEach((invoice) => {
       if (!String(invoice.PaymentStatus || '').toLowerCase().startsWith('paid')) {
         rows.push({
           type: 'Customer Payment',
           reference: invoice.InvoiceNo || invoice.InvoiceID,
           dueDate: invoice.DueDate || invoice.InvoiceDate,
           status: invoice.DueDate && invoice.DueDate < today ? 'Overdue' : 'Pending',
+        });
+      }
+    });
+    data.vendorPayments.forEach((payment) => {
+      if (!String(payment.PaymentStatus || '').toLowerCase().startsWith('paid')) {
+        rows.push({
+          type: 'Vendor Payment',
+          reference: payment.ReferenceNo || payment.PaymentID,
+          dueDate: payment.DueDate || payment.BillDate,
+          status: payment.DueDate && payment.DueDate < today ? 'Overdue' : 'Pending',
         });
       }
     });
@@ -165,7 +182,7 @@ async function initDashboardPage() {
       <tr>
         <td title="${escapeHtml(item.type)}">${escapeHtml(item.type)}</td>
         <td title="${escapeHtml(item.reference)}">${escapeHtml(item.reference)}</td>
-        <td>${escapeHtml(item.dueDate || '')}</td>
+        <td>${escapeHtml(formatDateDisplay(item.dueDate) || '')}</td>
         <td><span class="badge ${normalizeStatus(item.status)}">${escapeHtml(item.status)}</span></td>
       </tr>
     `).join('') : '<tr><td colspan="4">No pending notifications.</td></tr>';
@@ -202,7 +219,7 @@ async function initDashboardPage() {
   }
 
   function renderCharts(data) {
-    const invoiceRows = scoped(data.invoices, 'InvoiceDate');
+    const invoiceRows = includedInvoices(scoped(data.invoices, 'InvoiceDate'));
     const expenseRows = scoped(data.expenses, 'Date');
     const productionRows = scoped(data.production, 'Date');
     const sales = groupSum(invoiceRows, 'Amount', 'InvoiceDate');
@@ -222,16 +239,16 @@ async function initDashboardPage() {
   }
 
   async function loadDashboard() {
-    const [clients, orders, production, invoices, expenses, employees, customerPayments] = await Promise.all([
+    const [clients, orders, production, invoices, expenses, customerPayments, vendorPayments] = await Promise.all([
       apiGet('getClients').catch(() => []),
       apiGet('getOrders').catch(() => []),
       apiGet('getProduction').catch(() => []),
       apiGet('getInvoices').catch(() => []),
       apiGet('getExpenses').catch(() => []),
-      apiGet('getEmployees').catch(() => []),
       apiGet('getCustomerPayments').catch(() => []),
+      apiGet('getVendorPayments').catch(() => []),
     ]);
-    const data = { clients, orders, production, invoices, expenses, employees, customerPayments };
+    const data = { clients, orders, production, invoices, expenses, customerPayments, vendorPayments };
     const selectedFy = financialYearFilter.value;
     const years = uniqueValues(invoices.map((invoice) => ({ FinancialYear: invoice.FinancialYear || financialYearFromDate(invoice.InvoiceDate) })), 'FinancialYear').sort().reverse();
     financialYearFilter.innerHTML = '<option value="">All FY</option>' + years.map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}</option>`).join('');
@@ -258,4 +275,3 @@ async function initDashboardPage() {
   }));
   await loadDashboard();
 }
-
