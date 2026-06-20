@@ -740,6 +740,17 @@ function setupCrudModule(config) {
         }
       });
       await apiPost(`save${config.sheet}`, payload);
+      if (config.sheet === 'SalaryRegister') {
+        try {
+          const deducted = Number(payload.AdvanceDeducted || 0);
+          if (deducted > 0 && payload.EmployeeID) {
+            await updateAdvancesForSalary(payload.EmployeeID, deducted, payload[config.idField]);
+            delete lookupCache.Advances;
+          }
+        } catch (e) {
+          console.warn('Failed to update advances after salary save:', e.message || e);
+        }
+      }
       delete lookupCache[config.sheet];
       modalRoot.innerHTML = '';
       await loadRows();
@@ -888,6 +899,23 @@ function setFormValue(root, name, value) {
   const field = getFormField(root, name);
   if (field && value !== undefined && value !== null) {
     field.value = value;
+    try {
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (e) {
+      // ignore
+    }
+    const combo = field.closest('[data-combo]');
+    if (combo) {
+      const input = combo.querySelector('.combo-input');
+      if (input) {
+        if (field.selectedOptions) {
+          input.value = Array.from(field.selectedOptions).map((o) => o.textContent).filter(Boolean).join(', ');
+        } else {
+          const opt = field.options ? field.options[field.selectedIndex] : null;
+          input.value = opt ? opt.textContent : field.value || '';
+        }
+      }
+    }
   }
 }
 
@@ -1078,6 +1106,34 @@ function validateInvoiceSelection(modalRoot, report = false) {
     clientField.disabled = Boolean(clients[0]);
   }
   return true;
+}
+
+async function updateAdvancesForSalary(employeeID, amountToConsume, salaryID) {
+  let remaining = Number(amountToConsume || 0);
+  if (!remaining || !employeeID) return;
+  const advances = await loadLookupRows('Advances').catch(() => []);
+  const pending = advances
+    .filter((a) => String(a.EmployeeID) === String(employeeID) && String(a.Status || '').toLowerCase() !== 'adjusted' && String(a.Status || '').toLowerCase() !== 'cancelled')
+    .sort((a, b) => new Date(a.Date) - new Date(b.Date));
+
+  for (const adv of pending) {
+    if (remaining <= 0) break;
+    const advAmount = Number(adv.Amount || 0);
+    if (advAmount <= 0) continue;
+    if (remaining >= advAmount) {
+      adv.Status = 'Adjusted';
+      adv.Remarks = `${adv.Remarks || ''} Adjusted against ${salaryID}`.trim();
+      await apiPost('saveAdvances', adv);
+      remaining -= advAmount;
+    } else {
+      // partially consume this advance: reduce its Amount and save
+      adv.Amount = String(Math.round((advAmount - remaining) * 100) / 100);
+      adv.Remarks = `${adv.Remarks || ''} Partially adjusted ${amountToConsume - remaining + advAmount - adv.Amount} against ${salaryID}`.trim();
+      await apiPost('saveAdvances', adv);
+      remaining = 0;
+      break;
+    }
+  }
 }
 
 function setupTabPanels(defaultPanel) {
