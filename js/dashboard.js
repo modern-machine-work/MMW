@@ -43,7 +43,9 @@ async function initDashboardPage() {
   const scoped = (rows, dateField) => rows.filter((row) => inPeriod(row[dateField]) && inFy(row[dateField], row));
   const includedInvoices = (rows) => rows.filter((row) => String(row.IncludeInReports || 'Yes') !== 'No');
   const includedPayments = (payments, invoices) => {
-    const excludedInvoiceIds = new Set(invoices.filter((invoice) => String(invoice.IncludeInReports || 'Yes') === 'No').map((invoice) => String(invoice.InvoiceID)));
+    const excludedInvoiceIds = new Set(invoices
+      .filter((invoice) => String(invoice.IncludeInReports || 'Yes') === 'No')
+      .map((invoice) => String(invoice.InvoiceID)));
     return payments.filter((payment) => !payment.InvoiceID || !excludedInvoiceIds.has(String(payment.InvoiceID)));
   };
 
@@ -71,7 +73,7 @@ async function initDashboardPage() {
     const expenses = scoped(data.expenses, 'Date');
     const production = scoped(data.production, 'Date');
     const payments = includedPayments(scoped(data.customerPayments, 'PaymentDate'), data.invoices);
-    const sales = invoices.reduce((sum, row) => sum + amount(row.Amount), 0);
+    const sales = payments.reduce((sum, row) => sum + amount(row.AmountReceived), 0);
     const collections = payments.reduce((sum, row) => sum + amount(row.AmountReceived), 0);
     const expenseTotal = expenses.reduce((sum, row) => sum + amount(row.Amount), 0);
     const outstanding = invoices.filter((row) => !String(row.PaymentStatus || '').toLowerCase().startsWith('paid')).reduce((sum, row) => sum + amount(row.Amount), 0);
@@ -82,11 +84,8 @@ async function initDashboardPage() {
       .reduce((sum, row) => sum + amount(row.AmountPaid), 0);
     const cards = [
       ['Sales', money(sales)],
-      ['Collections', money(collections)],
-      ['Outstanding', money(outstanding)],
+      ['Receivables', money(outstanding)],
       ['Profit / Loss', money(sales - expenseTotal)],
-      ['Open Orders', openOrders],
-      ['Production Quantity', productionQty.toLocaleString('en-IN')],
       ['Vendor Outstanding', money(vendorOutstanding)],
       ['Expenses', money(expenseTotal)],
     ];
@@ -204,7 +203,7 @@ async function initDashboardPage() {
         return `
           <text x="12" y="${y + 15}" class="axis-label">${escapeHtml(label)}</text>
           <rect class="hbar" x="70" y="${y}" width="${Math.max(3, barWidth)}" height="20" rx="5" data-tip="${escapeHtml(label)}: ${escapeHtml(formatter(values[i] || 0))}"></rect>
-          <text x="${160 + barWidth}" y="${y + 15}" class="value-label">${escapeHtml(formatter(values[i] || 0))}</text>
+          <text x="${80 + barWidth}" y="${y + 15}" class="value-label">${escapeHtml(formatter(values[i] || 0))}</text>
         `;
       }).join('')}
     </svg>`;
@@ -219,10 +218,10 @@ async function initDashboardPage() {
   }
 
   function renderCharts(data) {
-    const invoiceRows = includedInvoices(scoped(data.invoices, 'InvoiceDate'));
+    const paymentRows = includedPayments(scoped(data.customerPayments, 'PaymentDate'), data.invoices);
     const expenseRows = scoped(data.expenses, 'Date');
     const productionRows = scoped(data.production, 'Date');
-    const sales = groupSum(invoiceRows, 'Amount', 'InvoiceDate');
+    const sales = groupSum(paymentRows, 'AmountReceived', 'PaymentDate');
     const expenses = groupSum(expenseRows, 'Amount', 'Date');
     const production = groupSum(productionRows, 'OKQty', 'Date');
     const months = Array.from(new Set([...Object.keys(sales), ...Object.keys(expenses), ...Object.keys(production)])).sort().slice(-12);
@@ -230,9 +229,9 @@ async function initDashboardPage() {
     svgBarChart(productionRoot, months, months.map((m) => production[m] || 0), (v) => Math.round(v).toLocaleString('en-IN'));
 
     const clientTotals = {};
-    invoiceRows.forEach((invoice) => {
-      const client = invoice.ClientCode || 'Unknown';
-      clientTotals[client] = (clientTotals[client] || 0) + amount(invoice.Amount);
+    paymentRows.forEach((payment) => {
+      const client = payment.ClientCode || 'Unknown';
+      clientTotals[client] = (clientTotals[client] || 0) + amount(payment.AmountReceived);
     });
     const clients = Object.entries(clientTotals).sort((a, b) => b[1] - a[1]).slice(0, 8);
     svgBarChart(clientSalesRoot, clients.map(([client]) => client), clients.map(([, value]) => value), money);
