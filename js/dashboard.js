@@ -154,12 +154,6 @@ async function initDashboardPage() {
 
   function renderExpenseBreakdown(data, vendorMap) {
     const expenseRows = scoped(data.expenses, 'Date');
-    const vendorPaymentRows = data.vendorPayments.filter((row) => {
-      return ['PaymentDate', 'BillDate', 'DueDate'].some((field) => {
-        const value = row[field];
-        return value && inPeriod(value) && inFy(value, row);
-      });
-    });
     const totals = {};
 
     const addBreakdown = (key, value) => {
@@ -176,14 +170,6 @@ async function initDashboardPage() {
       if (category.toLowerCase() === 'vendor payment' || (!category && vendorId)) {
         key = vendorMap[vendorId] || vendorId || 'Vendor Payment';
       }
-      addBreakdown(key, amountValue);
-    });
-
-    vendorPaymentRows.forEach((row) => {
-      const amountValue = amount(row.AmountPaid);
-      if (amountValue <= 0) return;
-      const vendorId = String(row.VendorID || '').trim();
-      const key = vendorMap[vendorId] || vendorId || 'Vendor Payment';
       addBreakdown(key, amountValue);
     });
 
