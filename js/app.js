@@ -1067,6 +1067,7 @@ function applyFormEnhancements(config, modalRoot) {
     const advance = getFormField(modalRoot, 'AdvanceDeducted');
     const other = getFormField(modalRoot, 'OtherDeductions');
     const net = getFormField(modalRoot, 'NetSalaryPayable');
+    const totalHours = getFormField(modalRoot, 'TotalHoursWorked');
     const recalcNet = () => {
       const value = Number(gross?.value || 0) - Number(advance?.value || 0) - Number(other?.value || 0);
       if (net) net.value = value ? value.toFixed(2) : '';
@@ -1088,12 +1089,14 @@ function applyFormEnhancements(config, modalRoot) {
       const perHourValue = Number(employeeRow?.PerHourSalary || employeeRow?.OTRate || 0);
       const monthAttendance = attendanceRows.filter((row) => String(row.EmployeeID) === String(employeeID) && String(row.Date || '').slice(0, 7) === monthValue);
       const totalPayableMinutes = monthAttendance.reduce((sum, row) => sum + Number(row.WorkMinutes || 0) + Number(row.OTMinutes || 0), 0);
-      const grossValue = (totalPayableMinutes / 60) * perHourValue;
+      const totalHoursWorked = totalPayableMinutes / 60;
+      const grossValue = totalHoursWorked * perHourValue;
       const advanceValue = advanceRows
         .filter((row) => String(row.EmployeeID) === String(employeeID) && String(row.Date || '').slice(0, 7) === monthValue && String(row.Status || '').toLowerCase() !== 'cancelled')
         .reduce((sum, row) => sum + Number(row.Amount || 0), 0);
 
       if (gross && grossValue) gross.value = grossValue.toFixed(2);
+      if (totalHours) totalHours.value = totalHoursWorked ? totalHoursWorked.toFixed(2) : '';
       if (advance) advance.value = advanceValue ? advanceValue.toFixed(2) : '';
       recalcNet();
     };
