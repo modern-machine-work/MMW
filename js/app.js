@@ -136,8 +136,14 @@ function formatMinutesAsDecimalHours(value) {
 function newestFirstRows(rows, config) {
   const dateField = config.sortField || config.monthField || config.fields.find((field) => field.type === 'date')?.name;
   return [...rows].sort((a, b) => {
+    const monthA = String(a.Month || a[dateField] || '').slice(0, 7);
+    const monthB = String(b.Month || b[dateField] || '').slice(0, 7);
     const dateA = dateField ? parseDateValue(a[dateField]) : null;
     const dateB = dateField ? parseDateValue(b[dateField]) : null;
+
+    if (monthA && monthB && monthA !== monthB) {
+      return monthB.localeCompare(monthA);
+    }
     if (dateA && dateB && dateA.getTime() !== dateB.getTime()) return dateB - dateA;
     if (dateA && !dateB) return -1;
     if (!dateA && dateB) return 1;
