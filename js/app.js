@@ -504,7 +504,16 @@ function lookupLabel(row, lookup) {
 function resolveDisplayValue(row, field) {
   if (!field.displayFrom) return row[field.name] ?? '';
   const match = findCachedRow(field.displayFrom.sheet, field.displayFrom.valueField, row[field.name]);
-  return match ? (field.displayFrom.labelFields || []).map((key) => match[key]).filter(Boolean).join(' / ') : row[field.name];
+  if (!match) return row[field.name];
+  const labelFields = field.displayFrom.labelFields || [];
+  const values = labelFields.map((key) => match[key]).filter(Boolean);
+  if (field.displayFrom.sheet === 'Orders' && match.PartID) {
+    const part = findCachedRow('Parts', 'PartID', match.PartID);
+    if (part?.PartName) {
+      values.push(part.PartName);
+    }
+  }
+  return values.length ? values.join(' / ') : row[field.name];
 }
 
 async function loadLookupRows(sheetName) {
