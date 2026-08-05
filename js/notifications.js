@@ -19,13 +19,11 @@ async function initNotificationsPage() {
   }
 
   async function buildReminders() {
-    const [invoices, expenses, advances, salary, orders, dispatches, vendorPayments, vendors] = await Promise.all([
+    const [invoices, expenses, advances, salary, vendorPayments, vendors] = await Promise.all([
       apiGet('getInvoices').catch(() => []),
       apiGet('getExpenses').catch(() => []),
       apiGet('getAdvances').catch(() => []),
       apiGet('getSalaryRegister').catch(() => []),
-      apiGet('getOrders').catch(() => []),
-      apiGet('getDispatch').catch(() => []),
       apiGet('getVendorPayments').catch(() => []),
       apiGet('getVendors').catch(() => []),
     ]);
@@ -96,20 +94,6 @@ async function initNotificationsPage() {
           dueDate: entry.Month,
           amount: entry.NetSalaryPayable,
           note: 'Salary payment pending',
-        });
-      }
-    });
-
-    const dispatchedOrders = new Set(dispatches.map((dispatch) => String(dispatch.OrderID || '')));
-    orders.forEach((order) => {
-      const status = String(order.Status || '').toLowerCase();
-      if (!['closed', 'dispatched'].includes(status) && !dispatchedOrders.has(String(order.OrderID || ''))) {
-        addReminder(list, {
-          type: 'Order',
-          reference: order.OrderID,
-          dueDate: order.ReceivedDate,
-          amount: Number(order.ReceivedQty || 0) * Number(order.Rate || 0),
-          note: `${order.PartID || ''} order is still open`,
         });
       }
     });
