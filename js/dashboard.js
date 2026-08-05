@@ -77,14 +77,17 @@ async function initDashboardPage() {
   }
 
   function renderStats(data) {
-    const invoices = includedInvoices(scoped(data.invoices, 'InvoiceDate'));
+    const invoices = includedInvoices(data.invoices);
     const expenses = scoped(data.expenses, 'Date');
     const production = scoped(data.production, 'Date');
     const payments = includedPayments(scoped(data.customerPayments, 'PaymentDate'), data.invoices);
     const sales = payments.reduce((sum, row) => sum + amount(row.AmountReceived), 0);
     const collections = payments.reduce((sum, row) => sum + amount(row.AmountReceived), 0);
     const expenseTotal = expenses.reduce((sum, row) => sum + amount(row.Amount), 0);
-    const outstanding = invoices.filter((row) => !String(row.PaymentStatus || '').toLowerCase().startsWith('paid')).reduce((sum, row) => sum + amount(row.Amount), 0);
+    const outstanding = invoices
+      .filter((row) => !String(row.PaymentStatus || '').toLowerCase().startsWith('paid'))
+      .filter((row) => inFy(row.InvoiceDate, row))
+      .reduce((sum, row) => sum + amount(row.Amount), 0);
     const productionQty = production.reduce((sum, row) => sum + amount(row.OKQty), 0);
     const openOrders = data.orders.filter((row) => !['closed', 'dispatched'].includes(String(row.Status || '').toLowerCase())).length;
     const vendorOutstanding = data.vendorPayments
