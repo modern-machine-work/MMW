@@ -444,6 +444,34 @@ textarea {
   color: var(--muted);
 }
 
+.password-wrap {
+  position: relative;
+}
+
+.password-wrap input {
+  padding-right: 44px;
+}
+
+.pw-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.pw-toggle:hover,
+.pw-toggle.active {
+  color: var(--primary);
+  background: #e7f5f3;
+}
+
 .login-form {
   display: grid;
   gap: 14px;
