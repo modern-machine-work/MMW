@@ -347,6 +347,16 @@ async function initLayout() {
 async function initLoginPage() {
   const form = document.getElementById('loginForm');
   const error = document.getElementById('loginError');
+
+  const toggle = document.getElementById('passwordToggle');
+  const pwInput = document.getElementById('password');
+  toggle?.addEventListener('click', () => {
+    const show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    toggle.classList.toggle('active', show);
+    toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
+
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
