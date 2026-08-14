@@ -43,6 +43,7 @@ function setActiveNavigation(routeName) {
 async function navigateTo(routeName = getCurrentRoute()) {
   const route = routes[routeName] || routes.dashboard;
   const authenticated = isAuthenticated();
+  const role = getRole().toLowerCase();
 
   if (!route.public && !authenticated) {
     window.location.hash = 'login';
@@ -51,6 +52,11 @@ async function navigateTo(routeName = getCurrentRoute()) {
 
   if (route.public && authenticated) {
     window.location.hash = 'dashboard';
+    return;
+  }
+
+  if (!route.public && role !== 'admin') {
+    window.location.href = '../employees/index.html#employee';
     return;
   }
 
