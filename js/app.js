@@ -8,6 +8,10 @@ function isAuthenticated() {
   return localStorage.getItem(AUTH_KEY) === 'true';
 }
 
+function getRole() {
+  return localStorage.getItem('mmwRole') || '';
+}
+
 async function login(username, password) {
   const response = await apiPost('login', { username, password });
   if (response.authenticated) {
@@ -15,6 +19,7 @@ async function login(username, password) {
     localStorage.setItem(AUTH_KEY, 'true');
     localStorage.setItem('mmwUser', response.username || username);
     localStorage.setItem('mmwToken', response.token || '');
+    localStorage.setItem('mmwRole', response.role || 'User');
     return true;
   }
   return false;
@@ -59,7 +64,6 @@ const ID_RULES = {
   Expenses: { prefix: 'EXP', digits: 3 },
   Attendance: { prefix: 'ATT', digits: 3 },
   Advances: { prefix: 'ADV', digits: 3 },
-  Notifications: { prefix: 'NOT', digits: 3 },
   SalaryRegister: { prefix: 'SAL', digits: 3 },
 };
 
