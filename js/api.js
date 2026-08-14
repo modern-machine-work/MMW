@@ -18,6 +18,7 @@ function clearAuthState() {
   localStorage.removeItem('mmwAuth');
   localStorage.removeItem('mmwToken');
   localStorage.removeItem('mmwUser');
+  localStorage.removeItem('mmwRole');
 }
 
 function handleSessionExpired() {
