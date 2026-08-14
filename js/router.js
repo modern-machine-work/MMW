@@ -56,7 +56,7 @@ async function navigateTo(routeName = getCurrentRoute()) {
   }
 
   if (!route.public && role !== 'admin') {
-    window.location.href = '../employees/index.html#employee';
+    window.location.href = 'https://modern-machine-work.github.io/Employees/#employee';
     return;
   }
 
