@@ -612,7 +612,6 @@ function setupCrudModule(config) {
       <button class="btn small" type="button" data-export-csv>CSV</button>
       <button class="btn small" type="button" data-export-excel>Excel</button>
       <button class="btn small" type="button" data-export-pdf>PDF</button>
-      ${config.sheet === 'Parts' ? '<button class="btn small" type="button" data-drive-folder>Drive Folder</button>' : ''}
     `);
 
     toolbar.querySelector('[data-export-csv]').addEventListener('click', () => {
@@ -644,21 +643,6 @@ function setupCrudModule(config) {
       toolbar.querySelector('[data-date-from]').value = '';
       toolbar.querySelector('[data-date-to]').value = '';
       applySearch();
-    });
-
-    toolbar.querySelector('[data-drive-folder]')?.addEventListener('click', async () => {
-      const row = state.filteredRows[0];
-      if (!row) {
-        alert('No record selected. Search or filter to the part you want first.');
-        return;
-      }
-
-      const entityType = 'Part';
-      const entityID = row[config.idField];
-      const result = await apiPost('createDriveFolders', { entityType, entityID });
-      if (result.folderUrl && confirm(`Drive folder is ready for ${entityID}. Open it now?`)) {
-        window.open(result.folderUrl, '_blank');
-      }
     });
   }
 
