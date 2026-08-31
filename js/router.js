@@ -19,7 +19,6 @@ const routes = {
   customerPayments: { title: 'Customer Payments', page: 'pages/customerPayments.html', init: 'initCustomerPaymentsPage' },
   vendorPayments: { title: 'Vendor Payments', page: 'pages/vendorPayments.html', init: 'initVendorPaymentsPage' },
   notifications: { title: 'Notifications', page: 'pages/notifications.html', init: 'initNotificationsPage' },
-  drive: { title: 'Drive', page: 'pages/drive.html', init: 'initDrivePage' },
 };
 
 function getCurrentRoute() {
