@@ -3,17 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MMW Employees</title>
+  <title>Modern Machine Work</title>
   <link rel="icon" href="logo.svg" sizes="any" type="image/svg+xml">
   <link rel="apple-touch-icon" href="logo.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f766e">
   <script>
-    window.APP_VERSION = '1.0.1';
+    window.APP_VERSION = '1.0.0';
   </script>
   <script>
     document.write(`<link rel="stylesheet" href="css/main.css?v=${window.APP_VERSION}">`);
-    document.write(`<link rel="stylesheet" href="css/portal.css?v=${window.APP_VERSION}">`);
   </script>
 </head>
 <body>
@@ -22,7 +21,8 @@
   </div>
 
   <div id="appLayout" class="app-layout hidden">
-    <aside id="sidebar" class="sidebar hidden"></aside>
+    <aside id="sidebar" class="sidebar"></aside>
+    <div id="sidebarBackdrop" class="sidebar-backdrop hidden" aria-hidden="true"></div>
     <div class="main-shell">
       <header id="navbar" class="navbar"></header>
       <main id="pageContent" class="page-content"></main>
@@ -34,15 +34,29 @@
   </div>
 
   <script>
-    const portalScripts = [
+    const scriptFiles = [
       'js/api.js',
-      'js/app.js',
       'js/router.js',
-      'js/pages/login.js',
-      'js/pages/employee.js',
-      'js/pages/admin.js'
+      'js/app.js',
+      'js/dashboard.js',
+      'js/clients.js',
+      'js/parts.js',
+      'js/vendors.js',
+      'js/machines.js',
+      'js/employees.js',
+      'js/orders.js',
+      'js/production.js',
+      'js/dispatch.js',
+      'js/invoices.js',
+      'js/expenses.js',
+      'js/attendance.js',
+      'js/advances.js',
+      'js/salaryRegister.js',
+      'js/customerPayments.js',
+      'js/vendorPayments.js',
+      'js/notifications.js'
     ];
-    portalScripts.forEach((src) => document.write(`<script src="${src}?v=${window.APP_VERSION}"></scr` + `ipt>`));
+    scriptFiles.forEach((src) => document.write(`<script src="${src}?v=${window.APP_VERSION}"></scr` + `ipt>`));
   </script>
 </body>
 </html>
