@@ -6,7 +6,7 @@ async function initOrdersPage() {
     idField: 'OrderID',
     idPrefix: 'OR',
     showView: true,
-    tableFields: ['ClientCode', 'PartID', 'ReceivedDate', 'DispatchDate'],
+    tableFields: ['ClientCode', 'PartID', 'ReceivedDate', 'DispatchDate', 'Status'],
     fields: [
       { name: 'OrderID', label: 'Order ID', required: true, readonly: true },
       { name: 'PartID', label: 'Part', required: true, lookup: { sheet: 'Parts', valueField: 'PartID', labelFields: ['PartName', 'ClientCode'] }, displayFrom: { sheet: 'Parts', valueField: 'PartID', labelFields: ['PartName'] } },
