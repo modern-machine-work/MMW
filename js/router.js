@@ -11,7 +11,6 @@ const routes = {
   employees: { title: 'Employees', page: 'pages/employees.html', init: 'initEmployeesPage' },
   orders: { title: 'Orders', page: 'pages/orders.html', init: 'initOrdersPage' },
   production: { title: 'Production', page: 'pages/production.html', init: 'initProductionPage' },
-  dispatch: { title: 'Dispatch', page: 'pages/dispatch.html', init: 'initDispatchPage' },
   invoices: { title: 'Invoices', page: 'pages/invoices.html', init: 'initInvoicesPage' },
   expenses: { title: 'Expenses', page: 'pages/expenses.html', init: 'initExpensesPage' },
   attendance: { title: 'Attendance', page: 'pages/attendance.html', init: 'initAttendancePage' },
