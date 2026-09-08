@@ -57,7 +57,6 @@ const ID_RULES = {
   Vendors: { prefix: 'V', digits: 3 },
   Orders: { prefix: 'ORD', digits: 3 },
   Production: { prefix: 'PROD', digits: 3 },
-  Dispatch: { prefix: 'DSP', digits: 3 },
   Invoices: { prefix: 'INV', digits: 3, idField: 'InvoiceID' },
   CustomerPayments: { prefix: 'PAY', digits: 3 },
   VendorPayments: { prefix: 'VPAY', digits: 3 },
@@ -819,22 +818,26 @@ function setupCrudModule(config) {
           payload[field.name] = String(Math.round(Number(payload[field.name] || 0)));
         }
       });
-      await apiPost(`save${config.sheet}`, payload);
-      if (config.sheet === 'SalaryRegister') {
-        try {
-          const deducted = Number(payload.AdvanceDeducted || 0);
-          if (deducted > 0 && payload.EmployeeID) {
-            await updateAdvancesForSalary(payload.EmployeeID, deducted, payload[config.idField]);
-            delete lookupCache.Advances;
+      try {
+        await apiPost(`save${config.sheet}`, payload);
+        if (config.sheet === 'SalaryRegister') {
+          try {
+            const deducted = Number(payload.AdvanceDeducted || 0);
+            if (deducted > 0 && payload.EmployeeID) {
+              await updateAdvancesForSalary(payload.EmployeeID, deducted, payload[config.idField]);
+              delete lookupCache.Advances;
+            }
+          } catch (e) {
+            console.warn('Failed to update advances after salary save:', e.message || e);
           }
-        } catch (e) {
-          console.warn('Failed to update advances after salary save:', e.message || e);
         }
+        delete lookupCache[config.sheet];
+        modalRoot.innerHTML = '';
+        await loadRows();
+        window.dispatchEvent(new Event('mmwDataUpdated'));
+      } catch (error) {
+        alert(error.message || 'Failed to save. Please try again.');
       }
-      delete lookupCache[config.sheet];
-      modalRoot.innerHTML = '';
-      await loadRows();
-      window.dispatchEvent(new Event('mmwDataUpdated'));
     });
 
     applyFormEnhancements(config, modalRoot);
@@ -1265,7 +1268,6 @@ async function initWorkPage() {
   await initOrdersPage();
   await initPartsPage();
   await initProductionPage();
-  await initDispatchPage();
   setupTabPanels('parts');
 }
 
